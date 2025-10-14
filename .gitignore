@@ -7,22 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Dependency directories
-node_modules/
-dist/
-dist-ssr/
-*.tgz
-
-# Environment variables
-.env
-.env.*
-!.env.example
+node_modules
+dist
+dist-ssr
+*.local
 
 # Editor directories and files
 .vscode/*
@@ -34,41 +22,3 @@ dist-ssr/
 *.njsproj
 *.sln
 *.sw?
-
-# Build outputs
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/.angular/
-.angular/
-
-# Vue-specific
-*.vue.legacy-*
-
-# Vite
-.vite/
-vite.config.js.timestamp-*
-
-# Cache
-.cache/
-.temp/
-
-# OS generated files
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-# End of line
-*~
