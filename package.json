@@ -7,8 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "predeploy": "npm run build"
   },
+  "homepage": "https://JerdonPhilip.github.io/task-management-app",
   "dependencies": {
     "@vitejs/plugin-vue": "^4.6.2",
     "vite": "^4.5.14",
