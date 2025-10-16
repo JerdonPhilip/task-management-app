@@ -1,6 +1,6 @@
 import { ref } from "vue";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_BASE = "http://localhost:3002/api";
 
 export function useApi () {
     const loading = ref(false);

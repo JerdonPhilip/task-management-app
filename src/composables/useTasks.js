@@ -1,90 +1,118 @@
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, reactive } from "vue";
+import { useApi } from "./useApi.js";
 
 export function useTasks () {
-    const tasks = ref([]);
-    const newTask = ref("");
-    const editingTask = ref(null);
+    const { get, post, put, delete: deleteReq } = useApi();
 
-    // Load tasks from localStorage on mount
-    onMounted(() => {
-        const savedTasks = localStorage.getItem("tasks");
-        if (savedTasks) {
-            tasks.value = JSON.parse(savedTasks);
-        }
-    });
+    const USER_ID = "hero123";
+
+    const tasks = reactive([]);
+    const newTask = ref("");
+    const taskDifficulty = ref("easy");
+    const loading = ref(false);
+    const error = ref(null);
 
     // Computed properties
-    const completedTasksCount = computed(() => {
-        return tasks.value.filter(task => task.completed).length;
-    });
+    const activeQuests = computed(() => tasks.filter(task => !task.completed));
+    const completedQuests = computed(() => tasks.filter(task => task.completed));
 
     // Methods
-    const addTask = () => {
+    const loadTasks = async () => {
+        loading.value = true;
+        error.value = null;
+        try {
+            console.log("Loading tasks from API...");
+            const tasksData = await get(`/tasks/${USER_ID}`);
+            console.log("Tasks loaded from API:", tasksData);
+
+            // Clear and replace tasks array
+            tasks.splice(0, tasks.length, ...tasksData);
+            console.log("Tasks after update:", tasks);
+        } catch (err) {
+            console.error("Failed to load tasks:", err);
+            error.value = err.message;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const addTask = async () => {
         if (newTask.value.trim()) {
-            const task = {
-                id: Date.now(),
-                text: newTask.value.trim(),
-                completed: false,
-                createdAt: new Date()
-            };
-            tasks.value.unshift(task);
-            newTask.value = "";
-            saveTasks();
-        }
-    };
+            loading.value = true;
+            try {
+                const taskData = {
+                    text: newTask.value.trim(),
+                    difficulty: taskDifficulty.value
+                };
 
-    const deleteTask = id => {
-        tasks.value = tasks.value.filter(task => task.id !== id);
-        saveTasks();
-    };
+                console.log("Sending task to API:", taskData);
+                const task = await post(`/tasks/${USER_ID}`, taskData);
+                console.log("Task created by API:", task);
 
-    const startEdit = task => {
-        editingTask.value = { ...task };
-    };
+                // Add the new task to the reactive array
+                tasks.unshift(task);
+                console.log("Tasks after adding:", tasks);
+                console.log("Active quests after adding:", activeQuests.value);
 
-    const saveEdit = () => {
-        if (editingTask.value && editingTask.value.text.trim()) {
-            const index = tasks.value.findIndex(t => t.id === editingTask.value.id);
-            if (index !== -1) {
-                tasks.value[index].text = editingTask.value.text.trim();
-                saveTasks();
+                // Reset form
+                newTask.value = "";
+                taskDifficulty.value = "easy";
+            } catch (err) {
+                console.error("Failed to add task:", err);
+                error.value = err.message;
+            } finally {
+                loading.value = false;
             }
-            editingTask.value = null;
         }
     };
 
-    const cancelEdit = () => {
-        editingTask.value = null;
+    const completeTask = async taskId => {
+        loading.value = true;
+        try {
+            const result = await put(`/tasks/${USER_ID}/${taskId}/complete`);
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = result.task;
+            }
+            return result.user;
+        } catch (err) {
+            console.error("Failed to complete task:", err);
+            error.value = err.message;
+            return null;
+        } finally {
+            loading.value = false;
+        }
     };
 
-    const updateTask = task => {
-        saveTasks();
+    const deleteTask = async taskId => {
+        try {
+            await deleteReq(`/tasks/${USER_ID}/${taskId}`);
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                tasks.splice(taskIndex, 1);
+            }
+        } catch (err) {
+            console.error("Failed to delete task:", err);
+            error.value = err.message;
+        }
     };
 
-    const saveTasks = () => {
-        localStorage.setItem("tasks", JSON.stringify(tasks.value));
-    };
-
-    const formatDate = date => {
-        return new Date(date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
+    const setDifficulty = difficulty => {
+        taskDifficulty.value = difficulty;
     };
 
     return {
         tasks,
         newTask,
-        editingTask,
-        completedTasksCount,
+        taskDifficulty,
+        activeQuests,
+        completedQuests,
+        loading,
+        error,
+        loadTasks,
         addTask,
+        completeTask,
         deleteTask,
-        startEdit,
-        saveEdit,
-        cancelEdit,
-        updateTask,
-        formatDate
+        setDifficulty
     };
 }
