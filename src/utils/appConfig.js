@@ -6,7 +6,7 @@ const config = {
     get appUrl() {
         return this.USE_LOCAL 
             ? "http://localhost:5173"
-            : "https://jerdonphilip.github.io/task-management-app";
+            : "https://JerdonPhilip.github.io/task-management-app";
     },
 
     get apiUrl() {
