@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import config from "@/appConfig";
+import config from "../utils/appConfig.js";
 
 // Use config.apiBaseUrl for dynamic base URL based on environment
 const API_BASE = config.apiBaseUrl;
