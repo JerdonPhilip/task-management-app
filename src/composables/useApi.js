@@ -1,6 +1,10 @@
 import { ref } from "vue";
+import config from "@/appConfig";
 
-const API_BASE = "http://localhost:3002/api";
+// Use config.apiBaseUrl for dynamic base URL based on environment
+const API_BASE = config.apiBaseUrl;
+// Use a fixed URL for local development or testing
+// const API_BASE = "http://localhost:3002/api";
 
 export function useApi () {
     const loading = ref(false);
@@ -14,6 +18,7 @@ export function useApi () {
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 headers: {
                     "Content-Type": "application/json",
+                    "x-api-key": import.meta.env.VITE_API_KEY,
                     ...options.headers
                 },
                 ...options

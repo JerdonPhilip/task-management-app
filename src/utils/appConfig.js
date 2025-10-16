@@ -3,19 +3,15 @@ const config = {
     // URLs - Change USE_LOCAL to true/false
     USE_LOCAL: false, // ← false for production deployment
 
-    get appUrl() {
-        return this.USE_LOCAL 
-            ? "http://localhost:5173"
-            : "https://JerdonPhilip.github.io/task-management-app";
+    get appUrl () {
+        return this.USE_LOCAL ? "http://localhost:5173" : "https://JerdonPhilip.github.io/task-management-app";
     },
 
-    get apiUrl() {
-        return this.USE_LOCAL 
-            ? "http://localhost:3002"
-            : "https://task-management-api-1o26.onrender.com";
+    get apiUrl () {
+        return import.meta.env.VITE_API_URL || "http://localhost:3002";
     },
 
-    get apiBaseUrl() {
+    get apiBaseUrl () {
         return `${this.apiUrl}/api`;
     },
 
