@@ -1,8 +1,14 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [vue()],
-    base: "/task-management-app/" // Add this line - use your repo name
+    base: "/task-management-app/",
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src")
+        }
+    }
 });
