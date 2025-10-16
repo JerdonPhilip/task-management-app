@@ -4,8 +4,6 @@ import { useApi } from "./useApi.js";
 export function useTasks () {
     const { get, post, put, delete: deleteReq } = useApi();
 
-    const USER_ID = "hero123";
-
     const tasks = reactive([]);
     const newTask = ref("");
     const taskDifficulty = ref("easy");
@@ -17,17 +15,14 @@ export function useTasks () {
     const completedQuests = computed(() => tasks.filter(task => task.completed));
 
     // Methods
-    const loadTasks = async () => {
+    const loadTasks = async username => {
+        if (!username) return;
+
         loading.value = true;
         error.value = null;
         try {
-            console.log("Loading tasks from API...");
-            const tasksData = await get(`/tasks/${USER_ID}`);
-            console.log("Tasks loaded from API:", tasksData);
-
-            // Clear and replace tasks array
+            const tasksData = await get(`/tasks/${username}`);
             tasks.splice(0, tasks.length, ...tasksData);
-            console.log("Tasks after update:", tasks);
         } catch (err) {
             console.error("Failed to load tasks:", err);
             error.value = err.message;
@@ -36,40 +31,34 @@ export function useTasks () {
         }
     };
 
-    const addTask = async () => {
-        if (newTask.value.trim()) {
-            loading.value = true;
-            try {
-                const taskData = {
-                    text: newTask.value.trim(),
-                    difficulty: taskDifficulty.value
-                };
+    const addTask = async username => {
+        if (!username || !newTask.value.trim()) return;
 
-                console.log("Sending task to API:", taskData);
-                const task = await post(`/tasks/${USER_ID}`, taskData);
-                console.log("Task created by API:", task);
+        loading.value = true;
+        try {
+            const taskData = {
+                text: newTask.value.trim(),
+                difficulty: taskDifficulty.value
+            };
 
-                // Add the new task to the reactive array
-                tasks.unshift(task);
-                console.log("Tasks after adding:", tasks);
-                console.log("Active quests after adding:", activeQuests.value);
-
-                // Reset form
-                newTask.value = "";
-                taskDifficulty.value = "easy";
-            } catch (err) {
-                console.error("Failed to add task:", err);
-                error.value = err.message;
-            } finally {
-                loading.value = false;
-            }
+            const task = await post(`/tasks/${username}`, taskData);
+            tasks.unshift(task);
+            newTask.value = "";
+            taskDifficulty.value = "easy";
+        } catch (err) {
+            console.error("Failed to add task:", err);
+            error.value = err.message;
+        } finally {
+            loading.value = false;
         }
     };
 
-    const completeTask = async taskId => {
+    const completeTask = async (username, taskId) => {
+        if (!username) return null;
+
         loading.value = true;
         try {
-            const result = await put(`/tasks/${USER_ID}/${taskId}/complete`);
+            const result = await put(`/tasks/${username}/${taskId}/complete`);
             const taskIndex = tasks.findIndex(t => t.id === taskId);
             if (taskIndex !== -1) {
                 tasks[taskIndex] = result.task;
@@ -84,9 +73,11 @@ export function useTasks () {
         }
     };
 
-    const deleteTask = async taskId => {
+    const deleteTask = async (username, taskId) => {
+        if (!username) return;
+
         try {
-            await deleteReq(`/tasks/${USER_ID}/${taskId}`);
+            await deleteReq(`/tasks/${username}/${taskId}`);
             const taskIndex = tasks.findIndex(t => t.id === taskId);
             if (taskIndex !== -1) {
                 tasks.splice(taskIndex, 1);
@@ -101,6 +92,12 @@ export function useTasks () {
         taskDifficulty.value = difficulty;
     };
 
+    const resetTasks = () => {
+        tasks.splice(0, tasks.length);
+        newTask.value = "";
+        taskDifficulty.value = "easy";
+    };
+
     return {
         tasks,
         newTask,
@@ -113,6 +110,7 @@ export function useTasks () {
         addTask,
         completeTask,
         deleteTask,
-        setDifficulty
+        setDifficulty,
+        resetTasks
     };
 }

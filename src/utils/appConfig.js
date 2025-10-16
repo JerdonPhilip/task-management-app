@@ -1,12 +1,21 @@
 // App Configuration
 const config = {
-    // URLs - Different for local vs GitHub
-    appUrl: import.meta.env.PROD ? "https://yourusername.github.io/task-management-app" : "http://localhost:5173",
+    // URLs - Change USE_LOCAL to true/false
+    USE_LOCAL: false, // ← false for production deployment
 
-    apiUrl: import.meta.env.PROD ? "https://your-task-api.herokuapp.com" : "http://localhost:3002",
+    get appUrl() {
+        return this.USE_LOCAL 
+            ? "http://localhost:5173"
+            : "https://jerdonphilip.github.io/task-management-app";
+    },
 
-    // Derived values
-    get apiBaseUrl () {
+    get apiUrl() {
+        return this.USE_LOCAL 
+            ? "http://localhost:3002"
+            : "https://task-management-api-1o26.onrender.com";
+    },
+
+    get apiBaseUrl() {
         return `${this.apiUrl}/api`;
     },
 

@@ -32,12 +32,27 @@ export function useApi () {
         }
     };
 
+    // Auth methods
+    const register = (username, password) =>
+        makeRequest("/users/register", {
+            method: "POST",
+            body: JSON.stringify({ username, password })
+        });
+
+    const login = (username, password) =>
+        makeRequest("/users/login", {
+            method: "POST",
+            body: JSON.stringify({ username, password })
+        });
+
     return {
         loading,
         error,
         get: endpoint => makeRequest(endpoint),
         post: (endpoint, data) => makeRequest(endpoint, { method: "POST", body: JSON.stringify(data) }),
         put: (endpoint, data) => makeRequest(endpoint, { method: "PUT", body: JSON.stringify(data) }),
-        delete: endpoint => makeRequest(endpoint, { method: "DELETE" })
+        delete: endpoint => makeRequest(endpoint, { method: "DELETE" }),
+        register,
+        login
     };
 }

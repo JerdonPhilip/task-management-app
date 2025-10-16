@@ -4,12 +4,10 @@ import { useApi } from "./useApi.js";
 export function useUser () {
     const { get, post, put, loading, error } = useApi();
 
-    const USER_ID = "hero123";
-
-    // Initialize with default values
     const user = reactive({
-        id: USER_ID,
-        name: "Adventurer",
+        id: "",
+        username: "",
+        name: "",
         level: 1,
         experience: 0,
         gold: 100,
@@ -33,39 +31,42 @@ export function useUser () {
     });
 
     // Methods
-    const loadUser = async () => {
+    const loadUser = async username => {
+        if (!username) return;
+
+        loading.value = true;
+        error.value = null;
         try {
-            const userData = await get(`/users/${USER_ID}`);
-            Object.assign(user, userData);
-            previousLevel.value = user.level;
+            // For now, we'll get user data from tasks since user endpoint doesn't exist yet
+            // In a real app, you'd have a GET /users/:username endpoint
+            const tasks = await get(`/tasks/${username}`);
+            // User data will be updated when completing tasks
         } catch (err) {
-            console.error("Failed to load user:", err);
-            await createUser();
+            console.error("Failed to load user data:", err);
+            error.value = err.message;
+        } finally {
+            loading.value = false;
         }
     };
 
-    const createUser = async () => {
-        try {
-            const userData = await post(`/users/${USER_ID}`, {
-                name: "Brave Adventurer"
-            });
-            Object.assign(user, userData);
-        } catch (err) {
-            console.error("Failed to create user:", err);
-        }
-    };
+    const updateUser = async (username, updates) => {
+        if (!username) return;
 
-    const updateUser = async updates => {
+        loading.value = true;
         try {
-            const userData = await put(`/users/${USER_ID}`, updates);
-            Object.assign(user, userData);
+            // Update local user data
+            Object.assign(user, updates);
 
+            // Check for level up
             if (user.level > previousLevel.value) {
                 showLevelUp.value = true;
                 previousLevel.value = user.level;
             }
         } catch (err) {
             console.error("Failed to update user:", err);
+            error.value = err.message;
+        } finally {
+            loading.value = false;
         }
     };
 
@@ -73,16 +74,39 @@ export function useUser () {
         showLevelUp.value = false;
     };
 
-    // Return ALL the reactive data
+    const setUserData = userData => {
+        Object.assign(user, userData);
+        previousLevel.value = user.level;
+    };
+
+    const resetUser = () => {
+        Object.assign(user, {
+            id: "",
+            username: "",
+            name: "",
+            level: 1,
+            experience: 0,
+            gold: 100,
+            health: 100,
+            maxHealth: 100,
+            class: "Novice",
+            completedQuests: 0
+        });
+        previousLevel.value = 1;
+        showLevelUp.value = false;
+    };
+
     return {
         user,
-        loading: ref(false), // Provide a default loading state
-        error: ref(null), // Provide a default error state
+        loading,
+        error,
         showLevelUp,
         experiencePercentage,
         healthPercentage,
         loadUser,
         updateUser,
-        closeLevelUp
+        closeLevelUp,
+        setUserData,
+        resetUser
     };
 }
