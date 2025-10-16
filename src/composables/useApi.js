@@ -37,6 +37,42 @@ export function useApi () {
         }
     };
 
+    return {
+        makeRequest
+    };
+}
+
+export function useApi () {
+    const loading = ref(false);
+    const error = ref(null);
+
+    const makeRequest = async (endpoint, options = {}) => {
+        loading.value = true;
+        error.value = null;
+
+        try {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": import.meta.env.VITE_API_KEY,
+                    ...options.headers
+                },
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (err) {
+            error.value = err.message;
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     // Auth methods
     const register = (username, password) =>
         makeRequest("/users/register", {
