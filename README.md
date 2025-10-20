@@ -4,6 +4,8 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 
 Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
 
+
+
 ```
 task-management-app
 ├─ index.html
@@ -18,16 +20,24 @@ task-management-app
 │  ├─ assets
 │  │  └─ vue.svg
 │  ├─ components
-│  │  └─ HelloWorld.vue
+│  │  ├─ LoginForm.vue
+│  │  └─ userProfile.vue
 │  ├─ composables
 │  │  ├─ useApi.js
 │  │  ├─ useTaskFilters.js
-│  │  └─ useTasks.js
+│  │  ├─ useTasks.js
+│  │  └─ useUser.js
 │  ├─ controllers
 │  │  └─ TaskController.js
 │  ├─ index.css
 │  ├─ main.js
-│  └─ style.css
+│  ├─ router
+│  │  └─ index.js
+│  ├─ style.css
+│  └─ utils
+│     ├─ api.js
+│     ├─ apiConfig.js
+│     └─ appConfig.js
 ├─ tailwind.config.cjs
 └─ vite.config.js
 

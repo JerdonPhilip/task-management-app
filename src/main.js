@@ -1,5 +1,8 @@
 import { createApp } from "vue";
-import "./style.css"; // Make sure this imports style.css
+import "./style.css";
 import App from "./App.vue";
+import router from "./router/index.js"; // add this line
 
-createApp(App).mount("#app");
+const app = createApp(App);
+app.use(router); // register the router
+app.mount("#app");

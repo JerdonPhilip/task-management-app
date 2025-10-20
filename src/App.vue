@@ -1,447 +1,187 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
-    <!-- Show Login Form when not authenticated -->
-    <LoginForm 
-      v-if="!isAuthenticated"
-      @login="handleLogin"
-      @signup="handleSignup"
-    />
+  <div id="app" class="min-h-screen bg-gradient-to-br from-[#211832] to-[#412B6B]">
+    <!-- Show loading state -->
+    <div v-if="isLoading" class="loading-screen">
+      <div class="text-center text-white">
+        <div class="text-4xl mb-4">⚔️</div>
+        <div class="text-xl">Loading your adventure...</div>
+      </div>
+    </div>
 
-    <!-- Show Main App when authenticated -->
-    <div v-else class="py-8">
-      <div class="max-w-4xl mx-auto px-4">
-        <!-- User Profile Header -->
-        <UserProfile 
-          :current-user="currentUser"
-          :user="user"
-          @logout="handleLogout"
-        />
+    <!-- Show error state -->
+    <div v-else-if="hasError" class="error-screen">
+      <div class="max-w-md mx-auto bg-red-500/20 border border-red-500 rounded-lg p-6 text-center">
+        <div class="text-2xl mb-2">💥</div>
+        <h3 class="text-red-400 text-lg font-bold mb-2">Adventure Halted!</h3>
+        <p class="text-red-300">{{ authError }}</p>
+        <button @click="hasError = false" class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+          Try Again
+        </button>
+      </div>
+    </div>
 
-        <!-- Header -->
-        <header class="text-center mb-8">
-          <h1 class="text-4xl font-bold text-yellow-400 mb-2">Task Quest RPG</h1>
-          <p class="text-blue-200">Complete tasks, level up your hero!</p>
-        </header>
-
-        <!-- Loading State -->
-        <div v-if="isLoading" class="text-center text-white">
-          <div class="text-xl">Loading your adventure...</div>
-        </div>
-
-        <!-- Error State -->
-        <div v-else-if="hasError" class="text-center text-red-400">
-          <div class="text-xl">Failed to load data. Please check if the API server is running.</div>
-          <button @click="retryLoading" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-            Retry
-          </button>
-        </div>
-
-        <!-- Main Content -->
-        <div v-else>
-          <!-- Auth Error Message -->
-          <div v-if="authError" class="bg-red-500/20 border border-red-500 rounded-lg p-3 mb-6">
-            <p class="text-red-400 text-sm">{{ authError }}</p>
-          </div>
-
-          <!-- Player Stats -->
-          <div class="bg-gray-800 rounded-lg p-6 mb-6 border-2 border-yellow-500">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-white mb-4">
-              <div>
-                <div class="text-sm text-gray-400">Level</div>
-                <div class="text-2xl font-bold text-yellow-400">{{ user.level }}</div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-400">Experience</div>
-                <div class="text-xl font-bold text-green-400">{{ user.experience }}/{{ user.level * 100 }}</div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-400">Gold</div>
-                <div class="text-2xl font-bold text-yellow-300">{{ user.gold }} 🪙</div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-400">Health</div>
-                <div class="text-xl font-bold text-red-400">{{ user.health }}/{{ user.maxHealth }} ❤️</div>
-              </div>
+    <!-- Show authenticated content -->
+    <div v-else-if="isAuthenticated && currentUser" class="app-content">
+      <!-- Navigation Header -->
+      <header class="bg-[#5C3E94] border-b-4 border-[#F25912] shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <h1 class="text-2xl font-bold text-[#F25912]">⚔️ Task Quest RPG</h1>
             </div>
             
-            <!-- Health Bar -->
-            <div class="mb-3">
-              <div class="text-sm text-gray-400 mb-1">Health</div>
-              <div class="w-full bg-gray-700 rounded-full h-4">
-                <div 
-                  class="bg-red-500 h-4 rounded-full transition-all duration-500"
-                  :style="{ width: `${healthPercentage}%` }"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Experience Bar -->
-            <div>
-              <div class="text-sm text-gray-400 mb-1">Experience</div>
-              <div class="w-full bg-gray-700 rounded-full h-3">
-                <div 
-                  class="bg-green-500 h-3 rounded-full transition-all duration-500"
-                  :style="{ width: `${experiencePercentage}%` }"
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Add Quest Form -->
-          <div class="bg-gray-800 rounded-lg p-6 mb-6 border-2 border-blue-500">
-            <form @submit.prevent="addQuest" class="space-y-4">
-              <input
-                v-model="newTask"
-                type="text"
-                placeholder="What quest awaits you, brave adventurer?"
-                class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none"
-                required
-              />
-              
-              <div class="flex gap-4">
-                <button
-                  type="button"
-                  @click="setDifficulty('easy')"
-                  :class="[
-                    'flex-1 py-3 rounded-lg font-bold transition-all',
-                    taskDifficulty === 'easy' 
-                      ? 'bg-green-600 text-white border-2 border-green-400' 
-                      : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
-                  ]"
-                >
-                  Easy Quest
-                  <div class="text-sm">+10 XP • +5 Gold</div>
-                </button>
-                
-                <button
-                  type="button"
-                  @click="setDifficulty('medium')"
-                  :class="[
-                    'flex-1 py-3 rounded-lg font-bold transition-all',
-                    taskDifficulty === 'medium' 
-                      ? 'bg-yellow-600 text-white border-2 border-yellow-400' 
-                      : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
-                  ]"
-                >
-                  Medium Quest
-                  <div class="text-sm">+25 XP • +15 Gold</div>
-                </button>
-                
-                <button
-                  type="button"
-                  @click="setDifficulty('hard')"
-                  :class="[
-                    'flex-1 py-3 rounded-lg font-bold transition-all',
-                    taskDifficulty === 'hard' 
-                      ? 'bg-red-600 text-white border-2 border-red-400' 
-                      : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
-                  ]"
-                >
-                  Hard Quest
-                  <div class="text-sm">+50 XP • +25 Gold</div>
-                </button>
+            <div class="flex items-center space-x-6">
+              <!-- User Info -->
+              <div class="text-right">
+                <div class="text-white font-semibold">Welcome, {{ currentUser.name }}! 🛡️</div>
+                <div class="text-sm text-gray-300">
+                  Level {{ currentUser.level || 1 }} • 
+                  {{ currentUser.experience || 0 }} XP • 
+                  {{ currentUser.gold || 0 }} 🪙
+                </div>
               </div>
               
-              <button
-                type="submit"
-                class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all border-2 border-purple-400"
+              <!-- Logout Button -->
+              <button 
+                @click="handleLogout" 
+                class="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg font-bold hover:from-red-700 hover:to-orange-700 transition-all border-2 border-red-400"
               >
-                🎯 Accept Quest
+                🚪 Logout
               </button>
-            </form>
-          </div>
-
-          <!-- Active Quests -->
-          <div class="space-y-4">
-            <h2 class="text-2xl font-bold text-white mb-4">Active Quests</h2>
-            
-            <div 
-              v-if="activeQuests.length === 0"
-              class="bg-gray-800 rounded-lg p-8 text-center border-2 border-gray-600"
-            >
-              <p class="text-gray-400">No active quests. Add a quest to begin your adventure!</p>
-            </div>
-            
-            <div 
-              v-for="quest in activeQuests" 
-              :key="quest.id"
-              class="bg-gray-800 rounded-lg p-4 border-2 border-yellow-500"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                  <button
-                    @click="completeQuest(quest)"
-                    class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition-colors text-white"
-                    title="Complete Quest"
-                  >
-                    ⚔️
-                  </button>
-                  <div class="flex-1">
-                    <div class="text-white font-semibold">{{ quest.text }}</div>
-                    <div class="text-sm text-gray-400">
-                      Difficulty: 
-                      <span :class="{
-                        'text-green-400': quest.difficulty === 'easy',
-                        'text-yellow-400': quest.difficulty === 'medium',
-                        'text-red-400': quest.difficulty === 'hard'
-                      }">
-                        {{ quest.difficulty }}
-                      </span>
-                      • Reward: +{{ quest.experience }} XP • +{{ quest.gold }} Gold
-                    </div>
-                    <div class="text-xs text-blue-300 mt-1">
-                      🕒 Created: {{ formatDateTime(quest.createdAt) }}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  @click="deleteQuest(quest.id)"
-                  class="text-red-400 hover:text-red-300 transition-colors p-2"
-                  title="Abandon Quest"
-                >
-                  ❌
-                </button>
-              </div>
-            </div>
-
-            <!-- Completed Quests -->
-            <div v-if="completedQuests.length > 0" class="mt-8">
-              <h2 class="text-2xl font-bold text-white mb-4">Completed Quests</h2>
-              <div 
-                v-for="quest in completedQuests" 
-                :key="quest.id"
-                class="bg-gray-700 rounded-lg p-4 border-2 border-green-500 opacity-75"
-              >
-                <div class="text-white line-through">{{ quest.text }}</div>
-                <div class="text-sm text-gray-400 mt-1">
-                  Difficulty: 
-                  <span :class="{
-                    'text-green-400': quest.difficulty === 'easy',
-                    'text-yellow-400': quest.difficulty === 'medium', 
-                    'text-red-400': quest.difficulty === 'hard'
-                  }">
-                    {{ quest.difficulty }}
-                  </span>
-                  • Reward: +{{ quest.experience }} XP • +{{ quest.gold }} Gold
-                </div>
-                <div class="text-xs text-blue-300 mt-1">
-                  🕒 Created: {{ formatDateTime(quest.createdAt) }}
-                </div>
-                <div class="text-xs text-green-300 mt-1">
-                  ✅ Completed: {{ formatDateTime(quest.completedAt) }}
-                </div>
-              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <!-- Level Up Modal -->
-      <div 
-        v-if="showLevelUp"
-        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50"
-      >
-        <div class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg p-8 text-center max-w-md">
-          <div class="text-6xl mb-4">🎉</div>
-          <h3 class="text-3xl font-bold text-white mb-2">Level Up!</h3>
-          <p class="text-white text-xl mb-4">You reached level {{ user.level }}!</p>
-          <p class="text-white mb-4">+50 Gold Bonus • +20 Max Health</p>
-          <button
-            @click="closeLevelUp"
-            class="bg-white text-orange-500 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-          >
-            Continue Adventure
-          </button>
+      <!-- Main Content -->
+      <main class="container mx-auto px-4 py-8">
+        <!-- User Profile Component -->
+        <userProfile 
+          v-if="currentUser" 
+          :user="currentUser" 
+          @showLogin="handleShowLogin"
+        />
+        
+        <!-- You can add more components here like task manager, etc. -->
+        <div class="mt-8 text-center text-gray-400">
+          <p>More adventure features coming soon! 🎮</p>
         </div>
-      </div>
+      </main>
+    </div>
+
+    <!-- Show login form when not authenticated -->
+    <div v-else class="auth-container">
+      <LoginForm 
+        @login="handleLogin" 
+        @signup="handleSignup" 
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useTasks } from './composables/useTasks.js'
-import { useUser } from './composables/useUser.js'
-import { useApi } from './composables/useApi.js'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import LoginForm from './components/LoginForm.vue'
-import UserProfile from './components/UserProfile.vue'
+import userProfile from './components/userProfile.vue'
+import useUser from './composables/useUser.js'
 
-// Authentication state
-const isAuthenticated = ref(false)
-const currentUser = ref('')
+const router = useRouter()
+const { currentUser, isAuthenticated, login, register, logout, loadUserData } = useUser()
 
-// Initialize composables and API
-const userComposable = useUser()
-const tasksComposable = useTasks()
-const { register, login } = useApi()
-
-// Destructure composables
-const {
-  user,
-  showLevelUp,
-  experiencePercentage,
-  healthPercentage,
-  loadUser,
-  updateUser,
-  closeLevelUp,
-  setUserData,
-  resetUser
-} = userComposable
-
-const {
-  tasks,
-  newTask,
-  taskDifficulty,
-  activeQuests,
-  completedQuests,
-  loadTasks,
-  addTask,
-  completeTask,
-  deleteTask,
-  setDifficulty,
-  resetTasks
-} = tasksComposable
-
-const isLoading = ref(true)
+// Define the reactive properties that your template expects
+const isLoading = ref(false)
 const hasError = ref(false)
 const authError = ref('')
 
-// Authentication methods
-const handleLogin = async (credentials) => {
-  authError.value = ''
+// Define the methods that your template expects
+const handleLogin = async (loginData) => {
   isLoading.value = true
-
+  hasError.value = false
+  authError.value = ''
+  
   try {
-    const userData = await login(credentials.username, credentials.password)
-    currentUser.value = userData.username
-    isAuthenticated.value = true
-    
-    // Set user data and load tasks
-    setUserData(userData)
-    await loadUserData()
-    
-    // Save to localStorage for persistence
-    localStorage.setItem('currentUser', currentUser.value)
-    
+    await login(loginData.username, loginData.password)
+    console.log('Login successful - user:', currentUser.value)
   } catch (error) {
-    authError.value = 'Login failed. Please check your credentials.'
-    console.error('Login error:', error)
+    hasError.value = true
+    authError.value = error.message || 'Login failed. Please try again.'
   } finally {
     isLoading.value = false
   }
 }
 
-const handleSignup = async (credentials) => {
-  authError.value = ''
+const handleSignup = async (signupData) => {
   isLoading.value = true
-
+  hasError.value = false
+  authError.value = ''
+  
   try {
-    const userData = await register(credentials.username, credentials.password)
-    currentUser.value = userData.username
-    isAuthenticated.value = true
-    
-    // Set user data and load tasks
-    setUserData(userData)
-    await loadUserData()
-    
-    // Save to localStorage for persistence
-    localStorage.setItem('currentUser', currentUser.value)
-    
-    // Show welcome message
-    alert(`Welcome, ${userData.username}! Your hero has been created!`)
-    
+    await register(signupData.username, signupData.password)
+    console.log('Registration successful - user:', currentUser.value)
   } catch (error) {
-    authError.value = 'Signup failed. Username might already exist.'
-    console.error('Signup error:', error)
+    hasError.value = true
+    authError.value = error.message || 'Registration failed. Please try again.'
   } finally {
     isLoading.value = false
   }
 }
 
 const handleLogout = () => {
-  if (confirm('Are you sure you want to logout?')) {
-    isAuthenticated.value = false
-    currentUser.value = ''
-    authError.value = ''
-    
-    // Clear all data
-    resetUser()
-    resetTasks()
-    
-    // Clear localStorage
-    localStorage.removeItem('currentUser')
-  }
-}
-
-// Load data for current user
-const loadUserData = async () => {
-  if (!currentUser.value) return
-  
-  isLoading.value = true
+  logout()
   hasError.value = false
-  
-  try {
-    await Promise.all([
-      loadUser(currentUser.value),
-      loadTasks(currentUser.value)
-    ])
-  } catch (error) {
-    console.error('Failed to load data:', error)
-    hasError.value = true
-  } finally {
-    isLoading.value = false
+  authError.value = ''
+  // Redirect to home
+  if (router) {
+    router.push('/')
   }
 }
 
-// Game methods
-const addQuest = async () => {
-  await addTask(currentUser.value)
+const handleShowLogin = () => {
+  // This will be called when userProfile emits 'showLogin'
+  // For example, you might want to show the login form again
+  console.log('Show login requested from userProfile')
+  // You could set a state to show the login form, but since we're already
+  // showing userProfile only when authenticated, this might not be needed
+  // but it's good to have for future use
 }
 
-const completeQuest = async (quest) => {
-  const updatedUser = await completeTask(currentUser.value, quest.id)
-  if (updatedUser) {
-    await updateUser(currentUser.value, updatedUser)
-  }
-}
-
-const deleteQuest = async (questId) => {
-  await deleteTask(currentUser.value, questId)
-}
-
-const formatDateTime = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  })
-}
-
-const retryLoading = () => {
-  isLoading.value = true
-  hasError.value = false
-  loadUserData()
-}
-
-// Watch for authentication changes to load data
-watch(isAuthenticated, (newVal) => {
-  if (newVal && currentUser.value) {
-    loadUserData()
-  }
-})
-
-// Check if user was previously logged in
+// Load user data when app starts
 onMounted(() => {
-  const savedUser = localStorage.getItem('currentUser')
-  if (savedUser) {
-    currentUser.value = savedUser
-    isAuthenticated.value = true
-    loadUserData()
-  } else {
-    isLoading.value = false
-  }
+  loadUserData()
 })
 </script>
+
+<style scoped>
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.error-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+.app-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+</style>

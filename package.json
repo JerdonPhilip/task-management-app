@@ -13,8 +13,10 @@
   "homepage": "https://JerdonPhilip.github.io/task-management-app",
   "dependencies": {
     "@vitejs/plugin-vue": "^4.6.2",
+    "axios": "^1.12.2",
     "vite": "^4.5.14",
-    "vue": "^3.5.22"
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",

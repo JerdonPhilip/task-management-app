@@ -2,7 +2,10 @@ import { ref } from "vue";
 import config from "../utils/appConfig.js";
 
 // Use config.apiBaseUrl for dynamic base URL based on environment
-const API_BASE = config.apiBaseUrl;
+const API_BASE = config.apiUrl;
+// console.log('API_BASE URL:', API_BASE);
+// console.log('API_BASE URLconfig.apiBaseUrl:', config.apiUrl);
+
 // Use a fixed URL for local development or testing
 // const API_BASE = "http://localhost:3002/api";
 
@@ -15,7 +18,10 @@ export function useApi () {
         error.value = null;
 
         try {
-            const response = await fetch(`${API_BASE}${endpoint}`, {
+            const url = `${API_BASE}${endpoint}`;
+            console.log("Making request to:", url); // Debug log
+
+            const response = await fetch(url, {
                 headers: {
                     "Content-Type": "application/json",
                     "x-api-key": import.meta.env.VITE_API_KEY,
@@ -38,13 +44,13 @@ export function useApi () {
     };
 
     const register = (username, password) =>
-        makeRequest("/users/register", {
+        makeRequest("/frontend/heroes", {
             method: "POST",
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ name: username, password })
         });
 
     const login = (username, password) =>
-        makeRequest("/users/login", {
+        makeRequest("/frontend/login", {
             method: "POST",
             body: JSON.stringify({ username, password })
         });

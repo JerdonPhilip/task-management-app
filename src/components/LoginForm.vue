@@ -1,80 +1,62 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800 flex items-center justify-center py-8">
+  <div class="min-h-screen bg-gradient-to-br from-[#211832] to-[#412B6B] flex items-center justify-center py-10">
     <div class="max-w-md w-full mx-4">
-      <div class="bg-gray-800 rounded-lg p-8 border-2 border-yellow-500 shadow-2xl">
+      <div class="bg-[#5C3E94] rounded-2xl p-8 border-4 border-[#F25912] shadow-2xl">
         <!-- Header -->
         <div class="text-center mb-8">
-          <h1 class="text-4xl font-bold text-yellow-400 mb-2">Task Quest RPG</h1>
-          <p class="text-blue-200">Begin your adventure!</p>
+          <h1 class="text-4xl font-bold text-[#F25912] mb-2">⚔️ Task Quest RPG ⚔️</h1>
+          <p class="text-[#ffffffb3]">Choose your path, hero!</p>
         </div>
 
         <!-- Tabs -->
-        <div class="flex mb-6 bg-gray-700 rounded-lg p-1">
+        <div class="flex mb-6 bg-[#412B6B] rounded-lg p-1">
           <button
             @click="activeTab = 'login'"
             :class="[
               'flex-1 py-2 rounded-lg font-bold transition-all',
-              activeTab === 'login'
-                ? 'bg-yellow-500 text-gray-900'
-                : 'text-gray-300 hover:text-white'
+              activeTab === 'login' ? 'bg-[#F25912] text-white' : 'text-gray-300 hover:text-white'
             ]"
           >
-            Login
+            🛡️ Login
           </button>
           <button
             @click="activeTab = 'signup'"
             :class="[
               'flex-1 py-2 rounded-lg font-bold transition-all',
-              activeTab === 'signup'
-                ? 'bg-yellow-500 text-gray-900'
-                : 'text-gray-300 hover:text-white'
+              activeTab === 'signup' ? 'bg-[#F25912] text-white' : 'text-gray-300 hover:text-white'
             ]"
           >
-            Sign Up
+            🧙 Create Hero
           </button>
         </div>
 
         <!-- Login Form -->
-        <form @submit.prevent="handleSubmit" class="space-y-6" v-if="activeTab === 'login'">
-          <!-- Username -->
+        <form v-if="activeTab === 'login'" @submit.prevent="loginHero" class="space-y-6">
           <div>
-            <label for="login-username" class="block text-sm font-medium text-gray-300 mb-2">
-              Hero Name
-            </label>
+            <label for="login-username" class="block text-sm font-medium text-gray-300 mb-2">Hero Name</label>
             <input
               id="login-username"
               v-model="loginData.username"
               type="text"
               placeholder="Enter your hero name"
-              class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors"
-              :class="{ 'border-red-500': loginErrors.username }"
+              class="w-full px-4 py-3 bg-[#412B6B] text-white rounded-lg border-2 border-gray-600 focus:border-[#F25912] focus:outline-none transition-colors"
               required
             />
-            <div v-if="loginErrors.username" class="text-red-400 text-sm mt-1">
-              {{ loginErrors.username }}
-            </div>
           </div>
 
-          <!-- Password -->
           <div>
-            <label for="login-password" class="block text-sm font-medium text-gray-300 mb-2">
-              Secret Code
-            </label>
+            <label for="login-password" class="block text-sm font-medium text-gray-300 mb-2">Secret Code</label>
             <input
               id="login-password"
               v-model="loginData.password"
               type="password"
               placeholder="Enter your secret code"
-              class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors"
-              :class="{ 'border-red-500': loginErrors.password }"
+              autocomplete="current-password"
+              class="w-full px-4 py-3 bg-[#412B6B] text-white rounded-lg border-2 border-gray-600 focus:border-[#F25912] focus:outline-none transition-colors"
               required
             />
-            <div v-if="loginErrors.password" class="text-red-400 text-sm mt-1">
-              {{ loginErrors.password }}
-            </div>
           </div>
 
-          <!-- Login Button -->
           <button
             type="submit"
             :disabled="loading"
@@ -86,65 +68,32 @@
         </form>
 
         <!-- Signup Form -->
-        <form @submit.prevent="handleSubmit" class="space-y-6" v-else>
-          <!-- Username -->
+        <form v-else @submit.prevent="createHero" class="space-y-6">
           <div>
-            <label for="signup-username" class="block text-sm font-medium text-gray-300 mb-2">
-              Choose Hero Name
-            </label>
+            <label for="signup-username" class="block text-sm font-medium text-gray-300 mb-2">Choose Hero Name</label>
             <input
               id="signup-username"
               v-model="signupData.username"
               type="text"
-              placeholder="8-20 characters (letters & numbers only)"
-              class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors"
-              :class="{ 'border-red-500': signupErrors.username }"
+              placeholder="Enter your hero name"
+              class="w-full px-4 py-3 bg-[#412B6B] text-white rounded-lg border-2 border-gray-600 focus:border-[#F25912] focus:outline-none transition-colors"
               required
             />
-            <div v-if="signupErrors.username" class="text-red-400 text-sm mt-1">
-              {{ signupErrors.username }}
-            </div>
           </div>
 
-          <!-- Password -->
           <div>
-            <label for="signup-password" class="block text-sm font-medium text-gray-300 mb-2">
-              Choose Secret Code
-            </label>
+            <label for="signup-password" class="block text-sm font-medium text-gray-300 mb-2">Secret Code</label>
             <input
               id="signup-password"
               v-model="signupData.password"
               type="password"
-              placeholder="Minimum 8 characters"
-              class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors"
-              :class="{ 'border-red-500': signupErrors.password }"
+              placeholder="Enter your secret code"
+              autocomplete="new-password"
+              class="w-full px-4 py-3 bg-[#412B6B] text-white rounded-lg border-2 border-gray-600 focus:border-[#F25912] focus:outline-none transition-colors"
               required
             />
-            <div v-if="signupErrors.password" class="text-red-400 text-sm mt-1">
-              {{ signupErrors.password }}
-            </div>
           </div>
 
-          <!-- Confirm Password -->
-          <div>
-            <label for="signup-confirmPassword" class="block text-sm font-medium text-gray-300 mb-2">
-              Confirm Secret Code
-            </label>
-            <input
-              id="signup-confirmPassword"
-              v-model="signupData.confirmPassword"
-              type="password"
-              placeholder="Re-enter your secret code"
-              class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors"
-              :class="{ 'border-red-500': signupErrors.confirmPassword }"
-              required
-            />
-            <div v-if="signupErrors.confirmPassword" class="text-red-400 text-sm mt-1">
-              {{ signupErrors.confirmPassword }}
-            </div>
-          </div>
-
-          <!-- Signup Button -->
           <button
             type="submit"
             :disabled="loading"
@@ -156,14 +105,24 @@
         </form>
 
         <!-- Error Message -->
-        <div v-if="submitError" class="bg-red-500/20 border border-red-500 rounded-lg p-3 mt-4">
-          <p class="text-red-400 text-sm">{{ submitError }}</p>
+        <div v-if="error" class="bg-red-500/20 border border-red-500 rounded-lg p-3 mt-4 text-center">
+          <p class="text-red-400 text-sm">{{ error }}</p>
         </div>
 
-        <!-- Demo Info -->
+        <!-- Info -->
         <div class="text-center text-gray-400 text-sm mt-6">
-          <p v-if="activeTab === 'login'">Don't have a hero? <button @click="activeTab = 'signup'" class="text-yellow-400 hover:text-yellow-300 underline">Create one!</button></p>
-          <p v-else>Already have a hero? <button @click="activeTab = 'login'" class="text-yellow-400 hover:text-yellow-300 underline">Enter adventure!</button></p>
+          <p v-if="activeTab === 'login'">
+            New hero? 
+            <button @click="activeTab = 'signup'" class="text-[#F25912] hover:text-yellow-300 underline">
+              Create one!
+            </button>
+          </p>
+          <p v-else>
+            Already have a hero? 
+            <button @click="activeTab = 'login'" class="text-[#F25912] hover:text-yellow-300 underline">
+              Enter adventure!
+            </button>
+          </p>
         </div>
       </div>
     </div>
@@ -171,138 +130,51 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref } from 'vue'
+import useUser from '../composables/useUser.js'
 
 const emit = defineEmits(['login', 'signup'])
 
+const { register, login } = useUser()
 const activeTab = ref('login')
 const loading = ref(false)
-const submitError = ref('')
+const error = ref('')
 
-// Login data
-const loginData = reactive({
-  username: '',
-  password: ''
-})
+const loginData = ref({ username: '', password: '' })
+const signupData = ref({ username: '', password: '' })
 
-// Signup data
-const signupData = reactive({
-  username: '',
-  password: '',
-  confirmPassword: ''
-})
-
-// Validation functions
-const validateUsername = (username) => {
-  if (!username) return 'Hero name is required'
-  if (username.length < 8 || username.length > 20) {
-    return 'Hero name must be 8-20 characters long'
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(username)) {
-    return 'Hero name can only contain letters and numbers'
-  }
-  return ''
-}
-
-const validatePassword = (password) => {
-  if (!password) return 'Secret code is required'
-  if (password.length < 8) {
-    return 'Secret code must be at least 8 characters long'
-  }
-  return ''
-}
-
-const validateConfirmPassword = (password, confirmPassword) => {
-  if (!confirmPassword) return 'Please confirm your secret code'
-  if (password !== confirmPassword) {
-    return 'Secret codes do not match'
-  }
-  return ''
-}
-
-// Computed errors
-const loginErrors = computed(() => ({
-  username: validateUsername(loginData.username),
-  password: validatePassword(loginData.password)
-}))
-
-const signupErrors = computed(() => ({
-  username: validateUsername(signupData.username),
-  password: validatePassword(signupData.password),
-  confirmPassword: validateConfirmPassword(signupData.password, signupData.confirmPassword)
-}))
-
-const hasLoginErrors = computed(() => {
-  return Object.values(loginErrors.value).some(error => error !== '')
-})
-
-const hasSignupErrors = computed(() => {
-  return Object.values(signupErrors.value).some(error => error !== '')
-})
-
-const handleSubmit = async () => {
-  // Clear previous errors
-  submitError.value = ''
-
-  if (activeTab.value === 'login') {
-    // Validate login form
-    if (hasLoginErrors.value) {
-      submitError.value = 'Please fix the errors above'
-      return
-    }
-
-    if (!loginData.username || !loginData.password) {
-      submitError.value = 'Please enter both hero name and secret code'
-      return
-    }
-
-    loading.value = true
-
-    try {
-      emit('login', {
-        username: loginData.username,
-        password: loginData.password
-      })
-    } catch (error) {
-      submitError.value = 'Failed to login. Please try again.'
-    } finally {
-      loading.value = false
-    }
-  } else {
-    // Validate signup form
-    if (hasSignupErrors.value) {
-      submitError.value = 'Please fix the errors above'
-      return
-    }
-
-    if (!signupData.username || !signupData.password || !signupData.confirmPassword) {
-      submitError.value = 'Please fill in all fields'
-      return
-    }
-
-    loading.value = true
-
-    try {
-      emit('signup', {
-        username: signupData.username,
-        password: signupData.password
-      })
-    } catch (error) {
-      submitError.value = 'Failed to create hero. Please try again.'
-    } finally {
-      loading.value = false
-    }
+const loginHero = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    await login(loginData.value.username, loginData.value.password)
+    emit('login', loginData.value)
+    console.log('Login successful in LoginForm')
+    loginData.value = { username: '', password: '' }
+  } catch (err) {
+    error.value = err.message || 'Login failed. Please check your hero name or secret code.'
+  } finally {
+    loading.value = false
   }
 }
 
-// Reset forms when switching tabs
-const resetForms = () => {
-  submitError.value = ''
-  Object.keys(loginData).forEach(key => { loginData[key] = '' })
-  Object.keys(signupData).forEach(key => { signupData[key] = '' })
+const createHero = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    await register(signupData.value.username, signupData.value.password)
+    emit('signup', signupData.value)
+    console.log('Registration successful in LoginForm')
+    signupData.value = { username: '', password: '' }
+    activeTab.value = 'login'
+  } catch (err) {
+    error.value = err.message || 'Failed to create hero. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
-
-// Watch for tab changes to reset forms
-import { watch } from 'vue'
-watch(activeTab, resetForms)
 </script>
+
+<style scoped>
+/* Additional styles if needed */
+</style>

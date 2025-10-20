@@ -1,112 +1,107 @@
-import { ref, computed, reactive } from "vue";
+// useUser.js
+import { ref } from "vue";
 import { useApi } from "./useApi.js";
 
-export function useUser () {
-    const { get, post, put, loading, error } = useApi();
+const currentUser = ref(null);
+const isAuthenticated = ref(false);
 
-    const user = reactive({
-        id: "",
-        username: "",
-        name: "",
-        level: 1,
-        experience: 0,
-        gold: 100,
-        health: 100,
-        maxHealth: 100,
-        class: "Novice",
-        completedQuests: 0
-    });
+export default function useUser () {
+    const { post } = useApi();
 
-    const showLevelUp = ref(false);
-    const previousLevel = ref(1);
-
-    // Computed properties
-    const experiencePercentage = computed(() => {
-        const expNeeded = user.level * 100;
-        return (user.experience / expNeeded) * 100;
-    });
-
-    const healthPercentage = computed(() => {
-        return (user.health / user.maxHealth) * 100;
-    });
-
-    // Methods
-    const loadUser = async username => {
-        if (!username) return;
-
-        loading.value = true;
-        error.value = null;
+    const register = async (username, password) => {
         try {
-            // For now, we'll get user data from tasks since user endpoint doesn't exist yet
-            // In a real app, you'd have a GET /users/:username endpoint
-            const tasks = await get(`/tasks/${username}`);
-            // User data will be updated when completing tasks
-        } catch (err) {
-            console.error("Failed to load user data:", err);
-            error.value = err.message;
-        } finally {
-            loading.value = false;
+            console.log("Registering user:", username);
+            const response = await post("/frontend/heroes", { name: username, password });
+            console.log("Registration response:", response);
+
+            // Ensure we have the user data with all required properties
+            const user = {
+                ...response,
+                id: response.id || Date.now(),
+                name: response.name || username,
+                level: response.level || 1,
+                experience: response.experience || 0,
+                health: response.health || 100,
+                gold: response.gold || 0,
+                completedQuests: response.completedQuests || 0
+            };
+
+            currentUser.value = user;
+            isAuthenticated.value = true;
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            console.log("User set after registration:", currentUser.value);
+            return user;
+        } catch (error) {
+            console.error("Registration failed:", error);
+            throw error;
         }
     };
 
-    const updateUser = async (username, updates) => {
-        if (!username) return;
-
-        loading.value = true;
+    const login = async (username, password) => {
         try {
-            // Update local user data
-            Object.assign(user, updates);
+            console.log("Logging in user:", username);
+            const response = await post("/frontend/login", { username, password });
+            console.log("Login response:", response);
 
-            // Check for level up
-            if (user.level > previousLevel.value) {
-                showLevelUp.value = true;
-                previousLevel.value = user.level;
+            // Ensure we have the user data with all required properties
+            const user = {
+                ...response,
+                id: response.id || Date.now(),
+                name: response.name || username,
+                level: response.level || 1,
+                experience: response.experience || 0,
+                health: response.health || 100,
+                gold: response.gold || 0,
+                completedQuests: response.completedQuests || 0
+            };
+
+            currentUser.value = user;
+            isAuthenticated.value = true;
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            console.log("User set after login:", currentUser.value);
+            return user;
+        } catch (error) {
+            console.error("Login failed:", error);
+            throw error;
+        }
+    };
+
+    const logout = () => {
+        console.log("Logging out user");
+        currentUser.value = null;
+        isAuthenticated.value = false;
+        localStorage.removeItem("currentUser");
+    };
+
+    const loadUserData = () => {
+        const savedUser = localStorage.getItem("currentUser");
+        console.log("Loading user data from localStorage:", savedUser);
+
+        if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+            try {
+                const user = JSON.parse(savedUser);
+                currentUser.value = user;
+                isAuthenticated.value = true;
+                console.log("User loaded from localStorage:", user);
+            } catch (error) {
+                console.error("Error parsing saved user:", error);
+                localStorage.removeItem("currentUser");
+                currentUser.value = null;
+                isAuthenticated.value = false;
             }
-        } catch (err) {
-            console.error("Failed to update user:", err);
-            error.value = err.message;
-        } finally {
-            loading.value = false;
+        } else {
+            console.log("No saved user found");
+            currentUser.value = null;
+            isAuthenticated.value = false;
         }
-    };
-
-    const closeLevelUp = () => {
-        showLevelUp.value = false;
-    };
-
-    const setUserData = userData => {
-        Object.assign(user, userData);
-        previousLevel.value = user.level;
-    };
-
-    const resetUser = () => {
-        Object.assign(user, {
-            id: "",
-            username: "",
-            name: "",
-            level: 1,
-            experience: 0,
-            gold: 100,
-            health: 100,
-            maxHealth: 100,
-            class: "Novice",
-            completedQuests: 0
-        });
-        previousLevel.value = 1;
-        showLevelUp.value = false;
     };
 
     return {
-        user,
-        loading,
-        error,
-        showLevelUp,
-        experiencePercentage,
-        healthPercentage,
-        loadUser,
-        updateUser,
-        closeLevelUp,
-        setUserData,
-        resetUser
+        currentUser,
+        isAuthenticated,
+        register,
+        login,
+        logout,
+        loadUserData
     };
 }
